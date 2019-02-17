@@ -27,12 +27,14 @@ const homeBarLeft = [
   id: 'backToHome',
   name: '',
   logo: './components/assets/picture/logo.png',
-  alt: 'Home Picture'
+  alt: 'Home Picture',
+  position: 'dashboard'
 },{
   id: 'goToReadPage',
   name: 'Reader',
   logo: './components/assets/picture/readerLogo.png',
-  alt: 'Reader Picture'
+  alt: 'Reader Picture',
+  position: 'dashboard'
 }];
 //home navbar right
 const homeBarRight = [{
@@ -40,17 +42,20 @@ const homeBarRight = [{
     name: 'Write',
     logo: './components/assets/picture/writePost.png',
     alt: 'Write Picture',
-    click: 'showCreatePost'
+    click: 'showCreatePost',
+    position: 'createBar'
   },{
     id: 'changeProfile',
     name: '',
     logo: './components/assets/picture/defaultProfile.png',
-    alt: 'Profile Picture'
+    alt: 'Profile Picture',
+    position: 'dashboard'
   },{
     id: 'viewChats',
     name: '',
     logo: './components/assets/picture/chatLogo.png',
-    alt: 'Chat Picture'
+    alt: 'Chat Picture',
+    position: 'dashboard'
   }]
 //home side bar
 

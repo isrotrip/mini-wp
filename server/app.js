@@ -25,6 +25,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/users', userRoute);
 app.use('/articles', verifyUser.authentication);
 app.use('/articles', articleRoute);
-app.use('/upload', uploadRoute)
+app.use('/upload', uploadRoute);
 
 module.exports = app;

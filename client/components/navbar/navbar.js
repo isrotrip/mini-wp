@@ -5,7 +5,7 @@ Vue.component('navbar', {
     <ul id="navbar-left" class="navbar-nav mr-auto">
       <li v-for="data in leftnavbars" class="nav-item">
         <div v-bind:id="data.id" class="nav-click">
-          <a class="nav-link" href="#" style="color:black; font-size: 20; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif">
+          <a class="nav-link" href="#" style="color:black; font-size: 20; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif" @click="changePosition(data.position)">
             <img v-bind:src="data.logo" alt="" style="height:50px">
             <i>{{data.name}}</i>
           </a>
@@ -15,7 +15,7 @@ Vue.component('navbar', {
     <ul id="navbar-right" class="navbar-nav ml-auto">
       <li v-for="data in rightnavbars" class="nav-item">
         <div v-bind:id="data.id" class="nav-click">
-          <a class="nav-link" href="#" style="color:black; font-size: 20; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif">
+          <a class="nav-link" href="#" style="color:black; font-size: 20; font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif" @click="changePosition(data.position)">
             <img v-bind:src="data.logo" alt="" style="height:50px">
             <i>{{data.name}}</i>
           </a>
@@ -32,6 +32,9 @@ Vue.component('navbar', {
     </ul>
   </nav>`,
   methods: {
+    changePosition: function(position){
+      this.$emit('change-position', position);
+    },
     logout: function(){
       this.$emit('logout') 
     }

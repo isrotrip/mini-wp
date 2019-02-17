@@ -1,5 +1,7 @@
 const url = 'http://localhost:3000';
 
+
+
 const app = new Vue({
   el: '#app',
   data: {
@@ -10,9 +12,10 @@ const app = new Vue({
       picture: ''
     },
     content: {
+      id: '',
       title: '',
-      tags: [],
-      text: [],
+      tags: '',
+      text: '',
       picture: ''
     },
     position: '',
@@ -21,35 +24,45 @@ const app = new Vue({
     rightNavBars: homeBarRight,
     sideBars: sideBars,
     articles: [],
-    filterData: ''
+    filterBy: ''
   },
+
+
   created() {
-    if(this.position !== 'formLogin'){
+    if(this.position === 'formLogin'){
+      $('#form-login').show()
+    } else if(this.postion === 'createBar'){
+      $('#create-bar').show()
+    } else {
       $('#form-login').hide()
-    } else if(this.postion !== 'createBar'){
       $('#create-bar').hide()
     }
 
     if(localStorage.getItem('token')){
       this.isLogin = true;
       this.position = 'dashboard';
+      this.readPost();
     } else {
       this.isLogin = false;
       this.position = 'formLogin';
     }    
   },
+
+
   mounted() {
     gapi.signin2.render('google-signin-button', { 
       onsuccess: this.onSignIn
     })
   },
+
+
   watch: {
     position: function(val){
       //ada google sign in & CKEDitor
       if(val=='formLogin'){
         $('#form-login').show()
         $('#create-bar').hide()
-      } else if(val=='createBar'){
+      } else if(val=='createBar' || val=='editBar'){
         $('#create-bar').show()
         $('#form-login').hide()
       } else {
@@ -66,10 +79,14 @@ const app = new Vue({
       }
     }
   },
+
+
   methods: {
     updatePosition(updatedPosition){
       this.position = updatedPosition;
     },
+
+
     onSignIn(googleUser) {
       var profile = googleUser.getBasicProfile();
       const name = profile.getName();
@@ -85,7 +102,6 @@ const app = new Vue({
           }
         })
         .then(({data}) => {
-          console.log('google login success');
           localStorage.setItem('token', data.token);
           this.user = {
             id: data.user.id,
@@ -112,12 +128,13 @@ const app = new Vue({
         }
       })
       .then(({data}) => {
-        console.log(data, 'ini datanya')
         localStorage.setItem('token', data.token);
         this.user.id = data.user.id;
         this.user.name = data.user.name;
         this.user.email = data.user.email;
         this.isLogin = true;
+        this.readPost();
+        this.position = 'dashboard'
       })
       .catch(err => {
         console.error(err);
@@ -144,57 +161,52 @@ const app = new Vue({
       })
     },
     logout(){
-      var auth2 = gapi.auth2.getAuthInstance();
-      auth2.signOut().then(function () {
-        this.isLogin = false; 
-        localStorage.removeItem('token');
-        this.position = 'formLogin';
-        console.log('User log out');
-      })
+      this.isLogin = false; 
+      localStorage.removeItem('token');
+      this.position = 'formLogin';
+      // var auth2 = gapi.auth2.getAuthInstance();
+      // auth2.signOut().then(function () {
+      //   console.log('User log out');
+      // })
     },
+
+
     readPost(){
       axios
         ({
           method: 'get',
           url:`${url}/articles`,
           headers: {
-            token: localStorage.token,
-            userId: this.user.id
+            token: localStorage.token
           }
         })
         .then(({data}) => {
-          this.databaseArticle = data;
           this.articles = data;
+          this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
         })
         .catch(err => {
           console.log(err);
         })
     },
-    showCreatePost(){
-      position = 'createPost';
-    },
-    addPost(){
+    addPost(content){
       axios
         ({
           method: 'post',
           url:`${url}/articles`,
           headers: {
-            token: localStorage.token,
-            userId: this.user.id
+            token: localStorage.getItem('token')
           },
           data: {
-            title: this.titleNewPost,
-            tags: this.tagNewPost.split(' '),
+            title: content.title,
+            tags: content.tags.split(' '),
             text: CKEDITOR.instances.editorCreate.getData(),
-            picture: user.picture,
-            userId: this.user.id,
+            picture: content.picture,
             created_at: new Date
           }
         })
         .then(({data}) => {
-          this.databaseArticle.push(data);
-          this.articles = this.databaseArticle.slice(0);
           this.articles.push(data);
+          this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
           this.cancel();
         })
         .catch(response => {
@@ -203,75 +215,78 @@ const app = new Vue({
     },
     filter(){
       this.articles = this.databaseArticle.filter(article => (article.content.title.indexOf(this.title) + 1));
+      this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
     },
     showEditForm(postId){
-      this.position = 'editContent';
-      this.editOrUpdateId = postId
-      const editContent = this.articles.filter(article => article.id === postId)[0].content;
-      this.titleNewPost = editContent.title;
-      this.tagNewPost = editContent.tags.join(' ');
+      this.position = 'editBar';
+      const editContent = this.articles.filter(article => article._id === postId)[0];
+      this.content.id = postId;
+      this.content.title = editContent.title;
+      this.content.tags = editContent.tags.join(' ');
       CKEDITOR.instances.editorCreate.setData(editContent.text);
+      this.content.picture = editContent.picture;
     },
-    editPost(){
+    editPost(content){
       axios
         ({
           method: 'put',
-          url:`${url}/articles/${this.editOrUpdateId}`,
+          url:`${url}/articles/${content.id}`,
           headers: {
-            token: localStorage.token,
-            userId: this.user.id
+            token: localStorage.getItem('token')
           },
           data: {
-            title: this.titleNewPost,
-            tags: this.tagNewPost.split(' '),
+            title: content.title,
+            tags: content.tags.split(' '),
             text: CKEDITOR.instances.editorCreate.getData(),
-            picture: this.user.picture,
-            userId: this.user.id,
+            picture: content.picture,
             created_at: new Date
           }
         })
         .then(({data}) => {
-          console.log('masuk', data);
-          this.databaseArticle.splice(this.databaseArticle.indexOf(this.editOrUpdateId), 1);
-          this.databaseArticle.push(data);
-          this.articles.splice(this.articles.indexOf(this.editOrUpdateId), 1);
+          const indexSplice = 0;
+          for(let i = 0; i < this.articles.length; i++){
+            if(this.articles[i]._id === data._id){
+              break;
+            }
+            else {
+              indexSplice = i;
+            }
+          }
+          this.articles.splice(indexSplice, 1);
           this.articles.push(data);
+          this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
           this.cancel();
         })
         .catch(err =>{
           console.error(err);
         })
     },
-    showWarning(postId){
-      this.editOrUpdateId = postId;
-      this.deleteCheckerWarning = true;
-    },
     removePost(deleteId){
       axios
       ({
         method: 'delete',
-        url:`${url}/articles/${this.editOrUpdateId}`,
+        url:`${url}/articles/${deleteId}`,
         headers: {
           token: localStorage.token,
           userId: this.user.id
         }
       })
         .then(({data}) => {
-          this.databaseArticle.splice(this.databaseArticle.indexOf(this.editOrUpdateId), 1);
+          this.databaseArticle.splice(this.databaseArticle.indexOf(deleteId), 1);
           this.articles.splice(this.articles.indexOf(deleteId), 1);
+          this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
         })
         .catch(response => {
           console.error(response);
         })
     },
     cancel(){
-      this.position = 'createContent';
-      this.editOrUpdateId = '';
-      this.titleNewPost = '';
-      this.tagNewPost = '';
-      this.deleteCheckerWarning = false;
-      this.articles = this.databaseArticle.slice(0);
-      CKupdate();
+      this.position = 'dashboard';
+      this.content.id = '';
+      this.content.title = '';
+      this.content.tags = '';
+      this.content.picture = '';
+      this.CKupdate();
     },
     CKupdate(){
       for ( instance in CKEDITOR.instances ){

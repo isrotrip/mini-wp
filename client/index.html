@@ -26,7 +26,7 @@
       <form-login id="form-login"
         :user="user" 
         @change-position="updatePosition($event)"
-        @submit-login="login($event)"/>
+        @submit-login="login($event)">
       </form-login>
       
       <!-- form register -->
@@ -34,20 +34,53 @@
         v-if="!isLogin && position=='formRegister'" 
         @change-position="updatePosition($event)" 
         :user="user"
-        @submit-register="register($event)"></form-register>
+        @submit-register="register($event)">
+      </form-register>
       <!-- navbar -->
-      <navbar v-if="isLogin" :LeftNavBars="leftNavBars" :RightNavBars="rightNavBars" @logout="logout"></navbar>
+      <navbar 
+        v-if="isLogin" 
+        :LeftNavBars="leftNavBars" 
+        :RightNavBars="rightNavBars"
+        @change-position="updatePosition($event)" 
+        @logout="logout">
+      </navbar>
       
       <div class="content container row mr-3">
-        <side-bars v-if="isLogin"  :SideBars="sideBars"></side-bars>
         <!-- sidebars -->
+        <side-bars 
+          v-if="isLogin"  
+          :SideBars="sideBars">
+        </side-bars>
+
+        <!-- content -->
         <div class="col">
+          
           <!-- search-bar -->
-          <search-bar v-if="isLogin"  style="padding-bottom:0; margin:0" :position="position" :filterdata="filterData"></search-bar>
+          <search-bar 
+            v-if="isLogin"  
+            style="padding-bottom:0; margin:0" 
+            :filter-data="filterBy">
+          </search-bar>
+          
           <!-- create-bar -->
-          <create-bar id="create-bar" :position="position" :content="content"></create-bar>
-          <!-- list content -->
-          <list-content v-if="isLogin"  :articles="articles"></list-content>
+          <create-bar 
+            id="create-bar" 
+            :position="position" 
+            :content="content"
+            @change-position="updatePosition($event)"
+            @update-content="editPost($event)"
+            @create-content="addPost($event)">
+          </create-bar>
+          
+          <!-- dashboard content -->
+          <list-content 
+            v-if="isLogin && position == 'dashboard'"  
+            :articles="articles"
+            :position="position"
+            @change-position="updatePosition($event)"
+            @show-editform="showEditForm($event)"
+            @remove-post="removePost($event)">
+          </list-content>
         </div>
       </div>
       <!-- footer -->

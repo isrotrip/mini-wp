@@ -1,14 +1,16 @@
 const Article = require('../models/article.js');
-const JWTDecoder = require('../helpers/JWTDecoder.js')
+const JWTDecoder = require('../helpers/JWTDecoder');
 
 class ArticleController {
   static create(req, res){
+    const user = JWTDecoder(req.headers.token, 'verify');
     Article
       .create({
         title: req.body.title,
         text: req.body.text,
         tags: req.body.tags,
         created_at: new Date,
+        picture: req.body.picture,
         userId: req.headers.userid
       })
       .then(article => {
@@ -37,6 +39,7 @@ class ArticleController {
         text: req.body.text,
         tags: req.body.tags,
         created_at: new Date,
+        picture: req.body.picture,
         userId: req.headers.userid
       }, {
         new: true

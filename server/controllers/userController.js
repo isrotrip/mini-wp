@@ -6,14 +6,12 @@ require('dotenv').config();
 
 class UserController {
   static login(req, res){
-    console.log(req.body)
     let token = '';
     User
       .findOne({
         email: req.body.email
       })
       .then(user => {
-        console.log(user)
         if(user && req.body.loginVia === 'google'){
           token = JWTDecoder(user, 'sign');
           res.status(201).json(sendToClient(token, user));
@@ -50,7 +48,6 @@ class UserController {
   }
 
   static register(req, res){
-    console.log(req.body)
     User
       .create({
         name: req.body.name,
@@ -60,13 +57,10 @@ class UserController {
         created_at: new Date
       })
       .then(user => {
-        console.log('tes masuk kesini', user)
         let token = JWTDecoder(user, 'sign');
-        console.log(token)
         res.status(201).json(sendToClient(token, user));
       })
       .catch(err => {
-        console.log(err)
         res.status(500).json({err: err.message});
       })
   }
