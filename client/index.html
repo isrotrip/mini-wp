@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="google-signin-client_id" content="813165512440-c5cij1illt8vuc71mludajl6hs490fn2.apps.googleusercontent.com"> 
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="./components/assets/css/style.css">
+    
+    <title>Mini Wordpress</title>
+
+    <script src="./components/assets/default-layout-data/layout-default-variables.js"></script>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://cdn.ckeditor.com/4.11.2/standard/ckeditor.js"></script>
+    <script src="https://unpkg.com/vue"></script> 
+    <script src="https://unpkg.com/vue-picture-input"></script>
+  </head>
+  <body>
+    <div id="app">
+      <!-- form login -->
+      <form-login id="form-login"
+        :user="user" 
+        @change-position="updatePosition($event)"
+        @submit-login="login($event)"/>
+      </form-login>
+      
+      <!-- form register -->
+      <form-register 
+        v-if="!isLogin && position=='formRegister'" 
+        @change-position="updatePosition($event)" 
+        :user="user"
+        @submit-register="register($event)"></form-register>
+      <!-- navbar -->
+      <navbar v-if="isLogin" :LeftNavBars="leftNavBars" :RightNavBars="rightNavBars" @logout="logout"></navbar>
+      
+      <div class="content container row mr-3">
+        <side-bars v-if="isLogin"  :SideBars="sideBars"></side-bars>
+        <!-- sidebars -->
+        <div class="col">
+          <!-- search-bar -->
+          <search-bar v-if="isLogin"  style="padding-bottom:0; margin:0" :position="position" :filterdata="filterData"></search-bar>
+          <!-- create-bar -->
+          <create-bar id="create-bar" :position="position" :content="content"></create-bar>
+          <!-- list content -->
+          <list-content v-if="isLogin"  :articles="articles"></list-content>
+        </div>
+      </div>
+      <!-- footer -->
+      <help-footer v-if="isLogin"></help-footer>
+    </div>
+
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.2/dist/vue.js"></script>
+
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <!-- components -->
+    <script src="./components/beforeLogin/login/form-login.js"></script>
+    <script src="./components/beforeLogin/register/form-register.js"></script>
+    <script src="./components/navbar/navbar.js"></script>
+    <script src="./components/sidebars/sidebars.js"></script>
+    <script src="./components/footer/footer.js"></script>
+    <script src="./components/main-content/search-bar.js"></script>
+    <script src="./components/main-content/create-bar.js"></script>
+    <script src="./components/main-content/list-content.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js" integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" crossorigin="anonymous"></script>
+
+    <!-- main js -->
+    <script src='./index.js'></script>
+
+  </body>
+</html>
