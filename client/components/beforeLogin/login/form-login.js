@@ -26,7 +26,7 @@ Vue.component('form-login', {
         </div>
         <div class="form-group">
           <button type="submit" class="btn btn-secondary btn-block"> Log In  </button>
-          <div id="google-signin-button" class="g-signin2"></div>
+          <div class="g-signin2" data-onsuccess=onSignIn></div>
         </div>
       </div>
     </form> 

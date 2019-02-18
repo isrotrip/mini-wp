@@ -1,5 +1,48 @@
 const url = 'http://localhost:3000';
 
+function onSignIn(googleUser) {
+  var profile = googleUser.getBasicProfile();
+  const name = profile.getName();
+  const email = profile.getEmail();
+    axios({
+      method: 'post',
+      url:`${url}/users/login`,
+      data: {
+        name: name,
+        email: email,
+        loginVia: 'google'
+      }
+    })
+    .then(({data}) => {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('email', data.user.email);
+      localStorage.setItem('loginVia', 'google');
+      
+    }) 
+    .catch((err) => {
+      console.error(err)
+    })
+}
+
+
+
+function signOut() {
+  var auth2 = gapi.auth2.getAuthInstance();
+  auth2.signOut().then(function () {
+    console.log('User signed out.');
+  });
+}
+
+
+function swal(type, title) {
+  Swal.fire({
+    position: 'top-end',
+    type: type,
+    title: title,
+    showConfirmButton: false,
+    timer: 700
+  })
+}
 
 
 const app = new Vue({
@@ -24,7 +67,8 @@ const app = new Vue({
     rightNavBars: homeBarRight,
     sideBars: sideBars,
     articles: [],
-    filterBy: ''
+    filterBy: '',
+    googleSignIn: false
   },
 
 
@@ -48,14 +92,6 @@ const app = new Vue({
     }    
   },
 
-
-  mounted() {
-    gapi.signin2.render('google-signin-button', { 
-      onsuccess: this.onSignIn
-    })
-  },
-
-
   watch: {
     position: function(val){
       //ada google sign in & CKEDitor
@@ -70,6 +106,7 @@ const app = new Vue({
         $('#create-bar').hide()
       }
     },
+
 
     isLogin: function(val){
       if(val === true){
@@ -86,37 +123,17 @@ const app = new Vue({
       this.position = updatedPosition;
     },
 
-
-    onSignIn(googleUser) {
-      var profile = googleUser.getBasicProfile();
-      const name = profile.getName();
-      const email = profile.getEmail();
-      console.log('google sign in')
-      axios({
-          method: 'post',
-          url:`${url}/users/login`,
-          data: {
-            name: name,
-            email: email,
-            loginVia: 'google'
-          }
-        })
-        .then(({data}) => {
-          localStorage.setItem('token', data.token);
-          this.user = {
-            id: data.user.id,
-            name: data.user.name,
-            email: data.user.email,
-            picture: data.user.picture,
-            loginVia: 'google'
-          },
-          this.isLogin = true;
-          this.position = 'dashboard';
-        })
-        .catch((err) => {
-          console.error(err)
-        })
+    async loginGoogle(googleUser){
+        onSignIn(googleUser)
+          .then(user => {
+            this.user = user;
+          })
+          .catch(err => {
+            console.error(err);
+            swal('error', "internal server error")
+          })
     },
+
     login(user){
       axios({
         method: 'post',
@@ -138,6 +155,7 @@ const app = new Vue({
       })
       .catch(err => {
         console.error(err);
+        swal('error', err)
       })
     },
     register(user){
@@ -158,16 +176,14 @@ const app = new Vue({
       })
       .catch((err) => {
         console.error(err);
+        swal('error', err)
       })
     },
     logout(){
       this.isLogin = false; 
       localStorage.removeItem('token');
       this.position = 'formLogin';
-      // var auth2 = gapi.auth2.getAuthInstance();
-      // auth2.signOut().then(function () {
-      //   console.log('User log out');
-      // })
+      signOut();
     },
 
 
@@ -182,7 +198,7 @@ const app = new Vue({
         })
         .then(({data}) => {
           this.articles = data;
-          this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
+          this.articles = this.articles.sort((a,b) => b.created_at > a.created_at);
         })
         .catch(err => {
           console.log(err);
@@ -206,16 +222,18 @@ const app = new Vue({
         })
         .then(({data}) => {
           this.articles.push(data);
-          this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
+          this.articles = this.articles.sort((a,b) => b.created_at > a.created_at);
           this.cancel();
+          swal('success', 'upload articles success')
         })
         .catch(response => {
           console.error(response)
+          swal('error', response)
         })
     },
     filter(){
-      this.articles = this.databaseArticle.filter(article => (article.content.title.indexOf(this.title) + 1));
-      this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
+      // this.articles = this.databaseArticle.filter(article => (article.content.title.indexOf(this.title) + 1));
+      // this.articles = this.articles.sort((a,b) => b.created_at > a.created_at);
     },
     showEditForm(postId){
       this.position = 'editBar';
@@ -243,22 +261,22 @@ const app = new Vue({
           }
         })
         .then(({data}) => {
-          const indexSplice = 0;
+          let indexSplice = 0;
           for(let i = 0; i < this.articles.length; i++){
             if(this.articles[i]._id === data._id){
-              break;
-            }
-            else {
               indexSplice = i;
+              break;
             }
           }
           this.articles.splice(indexSplice, 1);
           this.articles.push(data);
-          this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
+          this.articles = this.articles.sort((a,b) => b.created_at > a.created_at);
           this.cancel();
+          swal('success', 'success update a file')
         })
         .catch(err =>{
           console.error(err);
+          swal('error', err)
         })
     },
     removePost(deleteId){
@@ -272,12 +290,21 @@ const app = new Vue({
         }
       })
         .then(({data}) => {
-          this.databaseArticle.splice(this.databaseArticle.indexOf(deleteId), 1);
-          this.articles.splice(this.articles.indexOf(deleteId), 1);
-          this.articles = this.articles.sort((a,b) => a.created_at - b.created_at);
+          let indexSplice = 0;
+          for(let i = 0; i < this.articles.length; i++){
+            if(this.articles[i]._id === deleteId){
+              console.log(this.articles[i]._id, deleteId) 
+              indexSplice = i;
+              break;
+            }
+          }
+          this.articles.splice(this.articles.indexOf(indexSplice), 1);
+          this.articles = this.articles.sort((a,b) => b.created_at > a.created_at);
+          swal('success', 'success delete a file')
         })
         .catch(response => {
           console.error(response);
+          swal('error', response)
         })
     },
     cancel(){
